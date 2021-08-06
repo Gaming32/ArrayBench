@@ -30,11 +30,11 @@ jobs:
         uses: actions/upload-artifact@v2
         if: ${{ matrix.java == 8 && matrix.os == 'ubuntu-latest' }}
         with:
-          name: shaded-artifact
+          name: arraybench-shaded-artifact
           path: arraybench/target/arraybench-*.jar
       - name: Upload original artifact
         uses: actions/upload-artifact@v2
         if: ${{ matrix.java == 8 && matrix.os == 'ubuntu-latest' }}
         with:
-          name: original-artifact
+          name: arraybench-original-artifact
           path: arraybench/target/original-arraybench-*.jar
