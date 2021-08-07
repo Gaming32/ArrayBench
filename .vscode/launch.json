@@ -1,0 +1,27 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Launch ArrayBench",
+            "request": "launch",
+            "mainClass": "io.github.arraybench.main.ArrayBench",
+            "projectName": "arraybench",
+            "args": [
+                "-l", "32768",
+                "-p", "2",
+                "-r", "24",
+                "C:\\Apps\\ArrayV v4.0 alpha\\src\\sorts\\merge\\MergeSort.java"
+            ]
+        }
+    ]
+}

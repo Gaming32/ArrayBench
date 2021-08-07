@@ -6,7 +6,6 @@ import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
 import javax.tools.ToolProvider;
 import javax.tools.JavaCompiler;
@@ -53,14 +52,13 @@ final public class SortAnalyzer {
         this.arrayVisualizer = arrayVisualizer;
     }
 
-    private Sort compileSingle(String name, ClassLoader loader) {
+    private Sort compileSingle(String name, ClassLoader loader, boolean initialize) {
         Sort sort;
         try {
-            Class<?> sortClass;
-            if (loader == null)
-                sortClass = Class.forName(name);
-            else
-                sortClass = Class.forName(name, true, loader);
+            Class<?> sortClass = Class.forName(name, true, loader);
+            if (!initialize) {
+                return null;
+            }
             Constructor<?> newSort = sortClass.getConstructor(new Class[] {ArrayVisualizer.class});
             sort = (Sort) newSort.newInstance(this.arrayVisualizer);
             
@@ -89,7 +87,7 @@ final public class SortAnalyzer {
         return sort;
     }
 
-    public Sort importSort(File file) {
+    public Sort importSort(File packageRoot, File file, boolean initialize) {
         String contents;
         try {
             contents = new String(Files.readAllBytes(file.toPath()));
@@ -98,8 +96,9 @@ final public class SortAnalyzer {
             e.printStackTrace();
             return null;
         }
+
         Pattern packagePattern = Pattern.compile("^\\s*package io\\.github\\.arrayv\\.sorts\\.([a-zA-Z\\.]+);");
-        boolean legacy = false;
+        boolean legacy = false, isTemplate = false;
         Matcher matcher = packagePattern.matcher(contents);
         if (!matcher.find()) {
             Pattern packagePatternLegacy = Pattern.compile("^\\s*package sorts\\.([a-zA-Z\\.]+);");
@@ -109,25 +108,40 @@ final public class SortAnalyzer {
                 return null;
             }
             legacy = true;
-            contents = contents.replaceAll("package sorts\\.", "package io.github.arrayv.sorts.");
+            if (matcher.group(1).startsWith("templates")) {
+                isTemplate = true;
+                contents = contents.replaceAll("package sorts\\.templates", "package io.github.arraybench.sorts.templates");
+            } else {
+                contents = contents.replaceAll("package sorts", "package io.github.arrayv.sorts");
+            }
         }
+
         String root = legacy ? "" : "io.github.arrayv.";
-        for (String subPackage : new String[] {"main", "sorts", "utils"}) {
+        for (String subPackage : new String[] {"main", "utils"}) {
             contents = contents.replaceAll("import " + root + subPackage, "import io.github.arraybench." + subPackage);
         }
-        String packageName = "io.github.arrayv.sorts." + matcher.group(1);
+
+        Pattern findSortImport = Pattern.compile("^\\s*import " + root + "sorts\\.([a-zA-Z.]+);", Pattern.MULTILINE);
+        Matcher importMatcher = findSortImport.matcher(contents);
+        while (importMatcher.find()) {
+            String rel = importMatcher.group(1);
+            if (rel.endsWith("templates.Sort")) {
+                continue;
+            }
+            importSort(packageRoot, new File(packageRoot, rel.replaceAll("\\.", "/") + ".java"), false);
+        }
+        contents = contents.replaceAll("import " + root + "sorts.templates", "import io.github.arraybench.sorts.templates");
+        contents = contents.replaceAll("import " + root + "sorts", "import io.github.arrayv.sorts");
+
+        String packageName = "io.github." + (isTemplate ? "arraybench" : "arrayv") + ".sorts." + matcher.group(1);
         String name = packageName + "." + file.getName().split("\\.")[0];
         File tempPath = new File("./cache/" + String.join("/", packageName.split("\\.")));
         tempPath.mkdirs();
         File destPath = new File(tempPath.getAbsolutePath() + "/" + file.getName());
         try {
-            if (legacy) {
-                FileWriter writer = new FileWriter(destPath);
-                writer.write(contents);
-                writer.close();
-            } else {
-                Files.copy(file.toPath(), destPath.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            }
+            FileWriter writer = new FileWriter(destPath);
+            writer.write(contents);
+            writer.close();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -143,7 +157,7 @@ final public class SortAnalyzer {
 
         Sort sort;
         try {
-            if ((sort = compileSingle(name, URLClassLoader.newInstance(new URL[] { new File("./cache").toURI().toURL() }))) == null)
+            if ((sort = compileSingle(name, URLClassLoader.newInstance(new URL[] { new File("./cache/").toURI().toURL() }), initialize)) == null && initialize)
                 return null;
         }
         catch (Exception e) {

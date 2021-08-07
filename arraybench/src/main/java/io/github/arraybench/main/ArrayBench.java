@@ -76,10 +76,16 @@ public class ArrayBench {
             .help("The number of times to run the sort benching. Default is 3");
 
         Namespace ns = parser.parseArgsOrFail(args);
-        
+
+        File sortFile = ns.get("sortFile");
+        File packageRoot = sortFile.getParentFile();
+        while (!packageRoot.getName().equals("sorts")) {
+            packageRoot = packageRoot.getParentFile();
+        }
+
         ArrayVisualizer arrayVisualizer = new ArrayVisualizer();
         SortAnalyzer analyzer = new SortAnalyzer(arrayVisualizer);
-        Sort sort = analyzer.importSort(ns.get("sortFile"));
+        Sort sort = analyzer.importSort(packageRoot, sortFile, true);
         if (sort == null) {
             String invalidMessage = analyzer.getInvalidSorts();
             if (invalidMessage != null) {
