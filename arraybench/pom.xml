@@ -63,6 +63,9 @@
             <manifest>
               <mainClass>io.github.arraybench.main.ArrayBench</mainClass>
             </manifest>
+            <manifestEntries>
+              <Class-Path>cache</Class-Path>
+            </manifestEntries>
           </archive>
         </configuration>
       </plugin>

@@ -52,13 +52,10 @@ final public class SortAnalyzer {
         this.arrayVisualizer = arrayVisualizer;
     }
 
-    private Sort compileSingle(String name, ClassLoader loader, boolean initialize) {
+    private Sort compileSingle(String name, ClassLoader loader) {
         Sort sort;
         try {
             Class<?> sortClass = Class.forName(name, true, loader);
-            if (!initialize) {
-                return null;
-            }
             Constructor<?> newSort = sortClass.getConstructor(new Class[] {ArrayVisualizer.class});
             sort = (Sort) newSort.newInstance(this.arrayVisualizer);
             
@@ -155,14 +152,16 @@ final public class SortAnalyzer {
             return null;
         }
 
-        Sort sort;
-        try {
-            if ((sort = compileSingle(name, URLClassLoader.newInstance(new URL[] { new File("./cache/").toURI().toURL() }), initialize)) == null && initialize)
+        Sort sort = null;
+        if (initialize) {
+            try {
+                if ((sort = compileSingle(name, URLClassLoader.newInstance(new URL[] { new File("./cache/").toURI().toURL() }))) == null)
+                    return null;
+            }
+            catch (Exception e) {
+                e.printStackTrace();
                 return null;
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            }
         }
 
         System.out.println("Successfully imported sort " + name);
