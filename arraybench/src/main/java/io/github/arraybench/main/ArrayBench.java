@@ -79,7 +79,7 @@ public class ArrayBench {
 
         File sortFile = ns.get("sortFile");
         File packageRoot = sortFile.getParentFile();
-        while (!packageRoot.getName().equals("sorts")) {
+        while (packageRoot != null && !packageRoot.getName().equals("sorts")) {
             packageRoot = packageRoot.getParentFile();
         }
 

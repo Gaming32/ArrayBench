@@ -125,6 +125,10 @@ final public class SortAnalyzer {
             if (rel.endsWith("templates.Sort")) {
                 continue;
             }
+            if (packageRoot == null) {
+                System.out.println("Cannot load sort dependency: No root sorts directory found");
+                return null;
+            }
             importSort(packageRoot, new File(packageRoot, rel.replaceAll("\\.", "/") + ".java"), false);
         }
         contents = contents.replaceAll("import " + root + "sorts.templates", "import io.github.arraybench.sorts.templates");
