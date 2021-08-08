@@ -125,11 +125,18 @@ final public class SortAnalyzer {
             if (rel.endsWith("templates.Sort")) {
                 continue;
             }
+            File dependency;
             if (packageRoot == null) {
-                System.out.println("Cannot load sort dependency: No root sorts directory found");
-                return null;
+                String[] packagePath = rel.split("\\.");
+                dependency = new File(file.getParentFile(), packagePath[packagePath.length - 1] + ".java");
+                if (!dependency.exists()) {
+                    System.out.println("Cannot load sort dependency: No root sorts directory found nor could a dependency be found in the sort folder.");
+                    return null;
+                }
+            } else {
+                dependency = new File(packageRoot, rel.replaceAll("\\.", "/") + ".java");
             }
-            importSort(packageRoot, new File(packageRoot, rel.replaceAll("\\.", "/") + ".java"), false);
+            importSort(packageRoot, dependency, false);
         }
         contents = contents.replaceAll("import " + root + "sorts.templates", "import io.github.arraybench.sorts.templates");
         contents = contents.replaceAll("import " + root + "sorts", "import io.github.arrayv.sorts");

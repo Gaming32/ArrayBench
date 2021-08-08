@@ -30,6 +30,17 @@ public class ArrayBench {
         return null;
     }
 
+    static boolean isArrayVDir(File dir) {
+        // Check for visuals to verify this is ArrayV, not ArrayBench
+        for (String subDir : new String[] {"visuals", "sorts", "utils"}) {
+            File subFile = new File(dir, subDir);
+            if (!subFile.exists()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     static double runSort(int[] array, int arrayLength, Class<? extends Sort> sortClass, ArrayVisualizer arrayVisualizer) {
         for (int i = 0; i < arrayLength; i++) {
             array[i] = i;
@@ -67,25 +78,46 @@ public class ArrayBench {
             .help("The .java file of the sort");
         parser.addArgument("-l", "--length").metavar("LENGTH").dest("arrayLength")
             .type(int.class).setDefault(1024)
-            .help("The length of the array. Default is 1024");
+            .help("The length of the array");
         parser.addArgument("-p", "--pre-reps").metavar("COUNT").dest("preReps")
             .type(int.class).setDefault(1)
-            .help("The number of times to run the sort without benching. This helps the JIT. Default is 1");
+            .help("The number of times to run the sort without benching. This helps the JIT.");
         parser.addArgument("-r", "--reps").metavar("COUNT").dest("reps")
             .type(int.class).setDefault(3)
-            .help("The number of times to run the sort benching. Default is 3");
+            .help("The number of times to run the sort benching");
+        parser.addArgument("-a", "--arrayv").metavar("PATH").dest("arrayv")
+            .type(ArrayBench::existingFile).setDefault((File)null)
+            .help("The path to a directory in which to find ArrayV (not required)");
 
         Namespace ns = parser.parseArgsOrFail(args);
 
         File sortFile = ns.get("sortFile");
-        File packageRoot = sortFile.getParentFile();
-        while (packageRoot != null && !packageRoot.getName().equals("sorts")) {
-            packageRoot = packageRoot.getParentFile();
+
+        File arrayvDirectory = ns.get("arrayv");
+        if (arrayvDirectory == null) {
+            File packageRoot = sortFile.getParentFile();
+            while (packageRoot != null && !packageRoot.getName().equals("sorts")) {
+                packageRoot = packageRoot.getParentFile();
+            }
+            if (packageRoot != null) {
+                arrayvDirectory = packageRoot.getParentFile();
+            }
+        } else {
+            if (!isArrayVDir(arrayvDirectory)) {
+                File testFile;
+                if (isArrayVDir(testFile = new File(arrayvDirectory, "src"))) {
+                    arrayvDirectory = testFile;
+                } else if (isArrayVDir(testFile = new File(arrayvDirectory, "main/java/io/github/arrayv"))) {
+                    arrayvDirectory = testFile;
+                } else if (isArrayVDir(testFile = new File(arrayvDirectory, "src/main/java/io/github/arrayv"))) {
+                    arrayvDirectory = testFile;
+                }
+            }
         }
 
         ArrayVisualizer arrayVisualizer = new ArrayVisualizer();
         SortAnalyzer analyzer = new SortAnalyzer(arrayVisualizer);
-        Sort sort = analyzer.importSort(packageRoot, sortFile, true);
+        Sort sort = analyzer.importSort(new File(arrayvDirectory, "sorts"), sortFile, true);
         if (sort == null) {
             String invalidMessage = analyzer.getInvalidSorts();
             if (invalidMessage != null) {
