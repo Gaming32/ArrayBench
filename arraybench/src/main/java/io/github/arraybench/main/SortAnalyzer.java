@@ -175,7 +175,7 @@ final public class SortAnalyzer {
             }
         }
 
-        System.out.println("Successfully imported sort " + name);
+        System.out.println("Successfully imported class " + name);
         return sort;
     }
     

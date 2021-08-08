@@ -115,6 +115,12 @@ public class ArrayBench {
             }
         }
 
+        if (arrayvDirectory == null) {
+            System.out.println("ArrayV directory not found: Some features will be disabled\n");
+        } else {
+            System.out.println("ArrayV directory found: " + arrayvDirectory + "\n");
+        }
+
         ArrayVisualizer arrayVisualizer = new ArrayVisualizer();
         SortAnalyzer analyzer = new SortAnalyzer(arrayVisualizer);
         Sort sort = analyzer.importSort(new File(arrayvDirectory, "sorts"), sortFile, true);
@@ -127,7 +133,7 @@ public class ArrayBench {
         }
 
         int arrayLength = ns.getInt("arrayLength");
-        System.out.println("Sort: " + sort.getRunSortName() + "     Length: " + arrayLength);
+        System.out.println("\nSort: " + sort.getRunSortName() + "     Length: " + arrayLength);
 
         String suggestions = analyzer.getSuggestions();
         if (suggestions != null) {
