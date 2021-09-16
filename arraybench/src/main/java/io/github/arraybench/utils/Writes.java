@@ -43,6 +43,9 @@ public class Writes {
         array[at] = equals;
     }
 
+    public void visualClear(int[] array, int index) {}
+    public void visualClear(int[] array, int index, double delay) {}
+
     public void multiDimWrite(int[][] array, int x, int y, int equals, double pause, boolean mark, boolean auxwrite) {
         array[x][y] = equals;
     }
