@@ -84,7 +84,7 @@ final public class SortAnalyzer {
         return sort;
     }
 
-    public Sort importSort(File packageRoot, File file, boolean initialize) {
+    public Sort importClass(File packageRoot, File file, boolean initialize, String type) {
         String contents;
         try {
             contents = new String(Files.readAllBytes(file.toPath()));
@@ -94,11 +94,11 @@ final public class SortAnalyzer {
             return null;
         }
 
-        Pattern packagePattern = Pattern.compile("^\\s*package io\\.github\\.arrayv\\.sorts\\.([a-zA-Z\\.]+);");
+        Pattern packagePattern = Pattern.compile("^\\s*package io\\.github\\.arrayv\\." + type + "s\\.([a-zA-Z\\.]+);");
         boolean legacy = false, isTemplate = false;
         Matcher matcher = packagePattern.matcher(contents);
         if (!matcher.find()) {
-            Pattern packagePatternLegacy = Pattern.compile("^\\s*package sorts\\.([a-zA-Z\\.]+);");
+            Pattern packagePatternLegacy = Pattern.compile("^\\s*package " + type + "s\\.([a-zA-Z\\.]+);");
             matcher = packagePatternLegacy.matcher(contents);
             if (!matcher.find()) {
                 System.err.println("No package io.github.arrayv.sorts specifed");
@@ -107,9 +107,9 @@ final public class SortAnalyzer {
             legacy = true;
             if (matcher.group(1).startsWith("templates")) {
                 isTemplate = true;
-                contents = contents.replaceAll("package sorts\\.templates", "package io.github.arraybench.sorts.templates");
+                contents = contents.replaceAll("package sorts\\.templates", "package io.github.arraybench." + type + "s.templates");
             } else {
-                contents = contents.replaceAll("package sorts", "package io.github.arrayv.sorts");
+                contents = contents.replaceAll("package sorts", "package io.github.arrayv." + type + "s");
             }
         }
 
@@ -136,7 +136,7 @@ final public class SortAnalyzer {
             } else {
                 dependency = new File(packageRoot, rel.replaceAll("\\.", "/") + ".java");
             }
-            importSort(packageRoot, dependency, false);
+            importClass(packageRoot, dependency, false, "sort");
         }
         contents = contents.replaceAll("import " + root + "sorts.templates", "import io.github.arraybench.sorts.templates");
         contents = contents.replaceAll("import " + root + "sorts", "import io.github.arrayv.sorts");
