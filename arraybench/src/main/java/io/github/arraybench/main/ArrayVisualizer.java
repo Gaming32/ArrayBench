@@ -6,12 +6,16 @@ import io.github.arraybench.utils.Reads;
 import io.github.arraybench.utils.Writes;
 
 final public class ArrayVisualizer {
+    private int length;
+
     private Delays Delays;
     private Highlights Highlights;
     private Reads Reads;
     private Writes Writes;
 
-    public ArrayVisualizer() {
+    public ArrayVisualizer(int length) {
+        this.length = length;
+
         this.Delays = new Delays();
         this.Highlights = new Highlights();
         this.Reads = new Reads();
@@ -32,5 +36,13 @@ final public class ArrayVisualizer {
 
     public Writes getWrites() {
         return this.Writes;
+    }
+
+    public int getCurrentLength() {
+        return this.length;
+    }
+
+    public void setCurrentLength(int length) {
+        this.length = length;
     }
 }
